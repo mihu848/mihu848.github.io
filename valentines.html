@@ -41,7 +41,7 @@
       border: none;
       border-radius: 30px;
       cursor: pointer;
-      transition: transform 0.2s;
+      transition: transform 0.2s, background-color 0.2s;
     }
 
     #yesBtn {
@@ -50,7 +50,6 @@
     }
 
     #noBtn {
-      position: absolute;
       background: #aaa;
       color: white;
     }
@@ -68,26 +67,53 @@
   <script>
     const noBtn = document.getElementById("noBtn");
     const yesBtn = document.getElementById("yesBtn");
+    let scaleIncrement = 1.05; // Each time "No" is dodged, the "Yes" button will grow by this factor
+    const maxSize = 2; // Maximum size (scale) of the "Yes" button
 
-    // YES → go to spicy page 😏
+    // YES → go to yes page 😏
     yesBtn.addEventListener("click", () => {
       window.location.href = "yes.html";
     });
 
     function moveButton() {
       const padding = 20;
+      const containerRect = document.querySelector('.container').getBoundingClientRect();
       const maxX = window.innerWidth - noBtn.offsetWidth - padding;
       const maxY = window.innerHeight - noBtn.offsetHeight - padding;
 
-      const randomX = Math.random() * maxX;
-      const randomY = Math.random() * maxY;
+      let randomX, randomY;
 
+      do {
+        randomX = Math.random() * maxX;
+        randomY = Math.random() * maxY;
+      } while (
+        randomX >= containerRect.left &&
+        randomX <= containerRect.right &&
+        randomY >= containerRect.top &&
+        randomY <= containerRect.bottom
+      );
+
+      noBtn.style.position = 'absolute';
       noBtn.style.left = randomX + "px";
       noBtn.style.top = randomY + "px";
     }
 
     // NO → teleport away
     noBtn.addEventListener("mouseenter", moveButton);
+
+    // Move the 'No' button initially to avoid the container
+    setTimeout(moveButton, 1000);
+
+    // Increase size of 'Yes' button when 'No' is dodged
+    function growYesButton() {
+      let currentScale = parseFloat(window.getComputedStyle(yesBtn).transform.replace(/matrix$|$/g, '').split(',')[3]) || 1;
+      if (currentScale < maxSize) {
+        yesBtn.style.transform = `scale(${Math.min(currentScale * scaleIncrement, maxSize)})`;
+      }
+    }
+
+    // Call growYesButton whenever 'No' is moved
+    noBtn.addEventListener("mouseenter", growYesButton);
   </script>
 </body>
 </html>
